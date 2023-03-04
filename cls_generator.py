@@ -167,7 +167,7 @@ class DataGenerator:
                 res_dict.update({"val": val_metric})
 
                 logging.info(res_dict)
-                wandb.log(res_dict)
+                # wandb.log(res_dict)
 
                 log_count += 1
                 new_dataset = []

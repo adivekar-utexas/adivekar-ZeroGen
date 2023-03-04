@@ -115,8 +115,8 @@ if __name__ == '__main__':
     if is_stage_two:
         output_name = create_output_name(args)
         args.output_dir = os.path.join(args.output_dir, output_name)
-        wandb.init(project=os.getenv("WANDB_PROJECT"), entity=os.getenv("WANDB_ENTITY"), config=args, name=output_name,
-                   tags=[task_specification["task_name"]])
+        # wandb.init(project=os.getenv("WANDB_PROJECT"), entity=os.getenv("WANDB_ENTITY"), config=args, name=output_name,
+        #            tags=[task_specification["task_name"]])
 
     logging = init_logging(log_file=args.output_dir + '/output.log', stdout=True)
     logging.info(f"Parameters: {args}")
@@ -196,4 +196,4 @@ if __name__ == '__main__':
             logging.info(f"Done saving dataset to file '{dataset_path}'")
 
     if is_stage_two:
-        wandb.save(args.output_dir)
+        pass # wandb.save(args.output_dir)
