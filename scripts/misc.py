@@ -9,7 +9,6 @@ from main import task2processor
 from datasets import load_from_disk
 from cls_generator import convert_to_hf_dataset
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--task_name", type=str, default='sst-2',
@@ -48,15 +47,16 @@ if __name__ == '__main__':
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    processor = task2processor(args.task_name)(task_name=args.task_name,
-                                               model_name=args.small_model_name,
-                                               model_ckpt=args.small_model_ckpt,
-                                               output_dir=args.output_dir,
-                                               device=device,
-                                               num_epochs=args.num_epochs,
-                                               train_batch_size=args.train_batch_size,
-                                               learning_rate=args.learning_rate
-                                               )
+    processor = task2processor(args.task_name)(
+        task_name=args.task_name,
+        model_name=args.small_model_name,
+        model_ckpt=args.small_model_ckpt,
+        output_dir=args.output_dir,
+        device=device,
+        num_epochs=args.num_epochs,
+        train_batch_size=args.train_batch_size,
+        learning_rate=args.learning_rate
+    )
 
     if args.dataset:  # pseudo/synthetic dataset
         if args.task_name == 'squad' or args.task_name == 'adversarial_qa':

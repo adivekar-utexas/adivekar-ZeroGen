@@ -1,23 +1,24 @@
-home_dir="/nvme/yjc/ZeroGen"
+home_dir="/efs/litmus-server/users/adivekar/llm-gen/adivekar-ZeroGen"
 export PYTHONPATH=${home_dir}:${PYTHONPATH}
 export WANDB_DISABLED=true # disable wandb in huggingface transformers
 #export TRANSFORMERS_OFFLINE=1 # uncomment this line if you have downloaded the transformer models, it tells Transformers to use local files only and will not try to look things up.
-export WANDB_PROJECT=ZeroGen  # change if needed
-export WANDB_ENTITY=  # change to your wandb account
-export WANDB_API_KEY=  # change to your api-key
+export WANDB_PROJECT=LLM-Gen  # change if needed
+export WANDB_ENTITY=adivekar  # change to your wandb account
+export WANDB_API_KEY=b489c2e23b87f4d1a6de7905e7ab74524f2801fd  # change to your api-key
+export PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python  # For protobuf stuff
 
 
 gpu=1
 model_name=gpt2-xl
 small_model_name=distilbert-base-uncased
 
-batch_size=32 # for generation with PLM
+batch_size=4 # for generation with PLM
 train_batch_size=32  # for train the small model (DistilBERT by default)
 
 #task=sst-2
 
 ################################################################
-for task in rte
+for task in rte  ## ${task} gets the value "rte"
 do
   echo "############################################# Supervised with Human Annotations ###################################################"
   cmd="CUDA_VISIBLE_DEVICES=${gpu} python3 scripts/misc.py \
