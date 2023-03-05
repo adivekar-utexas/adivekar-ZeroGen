@@ -64,7 +64,7 @@ if __name__ == '__main__':
     # Text generation and sampling parameters
     parser.add_argument("--model_name", type=str, default="gpt2-xl",
                         help="The pretrained model to use for dataset generation. Currently, only variants of GPT2 are supported.")
-    parser.add_argument("--batch_size", type=int, default=None,
+    parser.add_argument("--batch_size", type=int, default=4,
                         help="The batch size for generation (only if --input_file is not set)")
     parser.add_argument("--num_entries_per_input", type=int, default=None,
                         help="The number of entries to generate for each label (only if --input_file is not set)")
@@ -174,7 +174,7 @@ if __name__ == '__main__':
         if zero_shot:
             logging.info("Starting inference under zero-shot setting...")
             dataset = processor.dataset[processor.validation_key]
-            generator.zero_shot_inference(dataset, args.batch_size)
+            generator.zero_shot_inference(dataset, batch_size=args.batch_size)
         else:
             if args.input_file:
                 logging.info(f"Use condition c from {args.input_file}")
@@ -185,10 +185,14 @@ if __name__ == '__main__':
             else:
                 logging.info("Do not use condition c")
                 inputs = None
-            
+
             logging.info("Starting dataset generation...")
-            outputs = generator.generate_dataset(inputs, num_entries_per_input=args.num_entries_per_input,
-                                                 batch_size=args.batch_size, log_every=args.log_every)
+            outputs = generator.generate_dataset(
+                inputs,
+                num_entries_per_input=args.num_entries_per_input,
+                batch_size=args.batch_size,
+                log_every=args.log_every,
+            )
 
             logging.info(f"Dataset generation complete, dataset contains {len(outputs)} entries")
             dataset_path = os.path.join(args.output_dir, f'{task_specification["task_name"]}-dataset.jsonl')
@@ -196,4 +200,4 @@ if __name__ == '__main__':
             logging.info(f"Done saving dataset to file '{dataset_path}'")
 
     if is_stage_two:
-        pass # wandb.save(args.output_dir)
+        pass  # wandb.save(args.output_dir)

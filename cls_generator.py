@@ -39,10 +39,18 @@ class DataGenerator:
     This class represents a generative language model which can be used to generate datasets from instructions.
     """
 
-    def __init__(self, output_dir, task_spec: Dict[str, Any], model: Union['str', 'ModelWrapper'] = None,
-                 max_length: int = 40, decay_constant: float = 100,
-                 processor: Processor = None, min_length: int = 1,
-                 is_stage_two: bool = False, **kwargs):
+    def __init__(
+            self,
+            output_dir,
+            task_spec: Dict[str, Any],
+            model: Union['str', 'ModelWrapper'] = None,
+            max_length: int = 40,
+            decay_constant: float = 100,
+            processor: Optional[Processor] = None,
+            min_length: int = 1,
+            is_stage_two: bool = False,
+            **kwargs
+    ):
         self.output_dir = output_dir
         self.model = model
         self.task_name = task_spec["task_name"]
@@ -55,14 +63,14 @@ class DataGenerator:
         self.instructions = {label: task_spec['labels'][label]['instruction'] for label in self.labels}
 
         self.decay_constant = decay_constant
-        if self.decay_constant == 0:  # don't use self-dedbias, so the counter labels can be ignored
+        if self.decay_constant == 0:  # don't use self-debias, so the counter labels can be ignored
             self.counter_labels = {label: [] for label in self.labels}
         else:
             self.counter_labels = {label: task_spec['labels'][label].get('counter_labels', []) for label in self.labels}
 
         self.processor = processor
 
-    def zero_shot_inference(self, dataset, batch_size: int = 16):
+    def zero_shot_inference(self, dataset, batch_size: int):
         sentence1_key = self.processor.sentence1_key
         sentence2_key = self.processor.sentence2_key
         instructions = self.instructions
@@ -75,7 +83,7 @@ class DataGenerator:
                             for x in examples[sentence1_key]]
             else:
                 examples = [build_instruction(instructions[label], c.replace('<br />', '\n'),
-                                                   x.replace('<br />', '\n'))
+                                              x.replace('<br />', '\n'))
                             for c, x in zip(examples[sentence1_key], examples[sentence2_key])]
             return tokenizer(examples, truncation=True, max_length=512)
 
@@ -108,13 +116,18 @@ class DataGenerator:
         gold = np.array(dataset['label'])
         expanded_gold = np.expand_dims(gold, axis=0)
         lm_loss_exp = np.exp(lm_loss_list)
-        gold_probs = np.take_along_axis(lm_loss_exp, expanded_gold, axis=0)/lm_loss_exp.sum(axis=0)
+        gold_probs = np.take_along_axis(lm_loss_exp, expanded_gold, axis=0) / lm_loss_exp.sum(axis=0)
         acc = (preds == gold).sum() / len(preds)
         logging.info("Zero-shot accuracy is " + str(acc))
         return gold_probs
 
-    def generate_dataset(self, input_texts: Optional[List[str]], num_entries_per_input: Optional[int] = None,
-                         batch_size: int = 16, log_every: int = 10000) -> List[Dict]:
+    def generate_dataset(
+            self,
+            input_texts: Optional[List[str]],
+            num_entries_per_input: Optional[int] = None,
+            batch_size: int = 4,
+            log_every: int = 10000
+    ) -> List[Dict]:
         generate_with_inputs = input_texts is not None
 
         if generate_with_inputs:
@@ -132,9 +145,11 @@ class DataGenerator:
             to_add = []
             input_texts_or_ids = [input_texts[i] for i in indices]
             for label in self.labels:
-                outputs = self._generate_dataset_entries(input_texts_or_ids, label=label,
-                                                         num_samples=num_entries_per_input,
-                                                         generate_with_inputs=generate_with_inputs)
+                outputs = self._generate_dataset_entries(
+                    input_texts_or_ids, label=label,
+                    num_samples=num_entries_per_input,
+                    generate_with_inputs=generate_with_inputs,
+                )
 
                 to_add += outputs
 
@@ -156,9 +171,11 @@ class DataGenerator:
                 self.processor.load_model()  # use the initial model
 
                 # train the model with full dataset
-                hf_dataset = convert_to_hf_dataset(dataset,
-                                                   sentence1_key=self.processor.sentence1_key,
-                                                   sentence2_key=self.processor.sentence2_key)
+                hf_dataset = convert_to_hf_dataset(
+                    dataset,
+                    sentence1_key=self.processor.sentence1_key,
+                    sentence2_key=self.processor.sentence2_key
+                )
                 self.processor.train(*self.processor.load_train_val(hf_dataset))
                 logging.info(f"Test results using {len(dataset)} training data: ")
 
@@ -272,4 +289,3 @@ def postprocess_dataset(dataset: List[Dict], generate_with_inputs: bool) -> List
         postprocessed_dataset.append(json.dumps(example))
     postprocessed_dataset = [json.loads(i) for i in list(dict.fromkeys(postprocessed_dataset))]
     return postprocessed_dataset
-

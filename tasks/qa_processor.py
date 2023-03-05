@@ -60,7 +60,7 @@ class QAProcessor(Processor):
         self.metric = load_metric('squad')
         self.main_metric_name = 'eval_f1'
 
-    def load_train_val(self, dataset, seed):
+    def load_train_val(self, dataset, seed=42):
         if dataset is None:
             dataset = self.dataset[self.train_key]
         elif isinstance(dataset, Dataset):

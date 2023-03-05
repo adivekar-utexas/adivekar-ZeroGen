@@ -21,7 +21,7 @@ class Processor(ABC):
         pass
 
     @abstractmethod
-    def load_train_val(self, dataset, seed):
+    def load_train_val(self, dataset, seed=42):
         pass
 
     @abstractmethod
@@ -29,5 +29,5 @@ class Processor(ABC):
         pass
 
     @abstractmethod
-    def validate(self, val_dataset, **kwargs):
+    def validate(self, val_dataset=None, **kwargs):
         pass
